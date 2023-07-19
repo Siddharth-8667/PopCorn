@@ -52,6 +52,7 @@ const average = (arr) =>
 export default function App() {
   const [movies, setMovies] = useState(tempMovieData);
   const [watched, setWatched] = useState(tempWatchedData);
+  // reused state
 
   return (
     <>
@@ -63,6 +64,7 @@ export default function App() {
         <Box>
           <ListOfMovies movies={movies} />
         </Box>
+        {/* reused box component */}
         <Box>
           <Summary watched={watched} />
           <WatchedMovieList watched={watched} />
