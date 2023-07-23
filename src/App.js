@@ -55,16 +55,18 @@ const average = (arr) =>
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [isLoading, setLoading] = useState(false);
   const query = "interstellar";
 
   useEffect(function () {
     async function fetchMovies() {
+      setLoading(true);
       const res = await fetch(
         `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
       );
       const data = await res.json();
       setMovies(data.Seaarch);
-      console.log(movies);
+      setLoading(false);
     }
     fetchMovies();
   }, []);
@@ -79,9 +81,7 @@ export default function App() {
         <Numresults movies={movies} />
       </Navbar>
       <Main>
-        <Box>
-          <ListOfMovies movies={movies} />
-        </Box>
+        <Box>{isLoading ? <Loader /> : <ListOfMovies movies={movies} />}</Box>
         {/* reused box component */}
         <Box>
           <Summary watched={watched} />
@@ -92,6 +92,11 @@ export default function App() {
     </>
   );
 }
+
+function Loader() {
+  return <p className="loader"> Loading...</p>;
+}
+
 function Navbar({ children }) {
   return (
     <nav className="nav-bar">
