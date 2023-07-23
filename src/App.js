@@ -47,57 +47,77 @@ const tempWatchedData = [
   },
 ];
 
-const KEY = "f54034bc";
-
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+
+const KEY = "f54034bc";
 
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
-  const [isLoading, setLoading] = useState(false);
-  const query = "interstellar";
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const query = "war";
 
   useEffect(function () {
     async function fetchMovies() {
-      setLoading(true);
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-      );
-      const data = await res.json();
-      setMovies(data.Seaarch);
-      setLoading(false);
+      try {
+        setIsLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+        );
+
+        if (!res.ok) throw new Error("Something went Wrong");
+
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("Movie Not Found");
+
+        setMovies(data.Search);
+      } catch (err) {
+        console.error(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchMovies();
   }, []);
-  //API
-
-  // reused state
 
   return (
     <>
-      <Navbar>
+      <NavBar>
         <Search />
-        <Numresults movies={movies} />
-      </Navbar>
+        <NumResults movies={movies} />
+      </NavBar>
+
       <Main>
-        <Box>{isLoading ? <Loader /> : <ListOfMovies movies={movies} />}</Box>
-        {/* reused box component */}
+        {/* <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />} </Box> */}
+
         <Box>
-          <Summary watched={watched} />
-          <WatchedMovieList watched={watched} />
+          {isLoading && <Loader />}
+          {!isLoading && !error && <MovieList movies={movies} />}
+          {error && <ErrorMessage message={error} />}
         </Box>
-        {/* <WatchedBox /> */}
+        <Box>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </Box>
       </Main>
     </>
   );
 }
-
-function Loader() {
-  return <p className="loader"> Loading...</p>;
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {message}
+    </p>
+  );
 }
-
-function Navbar({ children }) {
+function Loader() {
+  return <p className="loader">Loading....</p>;
+}
+function NavBar({ children }) {
   return (
     <nav className="nav-bar">
       <Logo />
@@ -105,13 +125,7 @@ function Navbar({ children }) {
     </nav>
   );
 }
-function Numresults() {
-  return (
-    <p className="num-results">
-      Found <strong>X</strong> results
-    </p>
-  );
-}
+
 function Logo() {
   return (
     <div className="logo">
@@ -120,6 +134,7 @@ function Logo() {
     </div>
   );
 }
+
 function Search() {
   const [query, setQuery] = useState("");
 
@@ -134,12 +149,19 @@ function Search() {
   );
 }
 
+function NumResults({ movies }) {
+  return (
+    <p className="num-results">
+      Found <strong>{movies.length}</strong> results
+    </p>
+  );
+}
+
 function Main({ children }) {
   return <main className="main">{children}</main>;
 }
 
 function Box({ children }) {
-  //listBox
   const [isOpen, setIsOpen] = useState(true);
 
   return (
@@ -147,35 +169,38 @@ function Box({ children }) {
       <button className="btn-toggle" onClick={() => setIsOpen((open) => !open)}>
         {isOpen ? "–" : "+"}
       </button>
+
       {isOpen && children}
     </div>
   );
 }
-// function WatchedBox() {
 
-//   const [isOpen2, setIsOpen2] = useState(true);
+/*
+function WatchedBox() {
+  const [watched, setWatched] = useState(tempWatchedData);
+  const [isOpen2, setIsOpen2] = useState(true);
 
-//   return (
-//     <div className="box">
-//       <button
-//         className="btn-toggle"
-//         onClick={() => setIsOpen2((open) => !open)}
-//       >
-//         {isOpen2 ? "–" : "+"}
-//       </button>
-//       {isOpen2 && (
-//         <>
-//           <Summary watched={watched} />
-//           <WatchedMovieList watched={watched} />
-//         </>
-//       )}
-//     </div>
-//   );
-// }
+  return (
+    <div className="box">
+      <button
+        className="btn-toggle"
+        onClick={() => setIsOpen2((open) => !open)}
+      >
+        {isOpen2 ? "–" : "+"}
+      </button>
 
-function ListOfMovies({ movies }) {
-  // MoiveList
+      {isOpen2 && (
+        <>
+          <WatchedSummary watched={watched} />
+          <WatchedMoviesList watched={watched} />
+        </>
+      )}
+    </div>
+  );
+}
+*/
 
+function MovieList({ movies }) {
   return (
     <ul className="list">
       {movies?.map((movie) => (
@@ -184,6 +209,7 @@ function ListOfMovies({ movies }) {
     </ul>
   );
 }
+
 function Movie({ movie }) {
   return (
     <li>
@@ -199,7 +225,7 @@ function Movie({ movie }) {
   );
 }
 
-function Summary({ watched }) {
+function WatchedSummary({ watched }) {
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
@@ -229,7 +255,7 @@ function Summary({ watched }) {
   );
 }
 
-function WatchedMovieList({ watched }) {
+function WatchedMoviesList({ watched }) {
   return (
     <ul className="list">
       {watched.map((movie) => (
@@ -240,7 +266,6 @@ function WatchedMovieList({ watched }) {
 }
 
 function WatchedMovie({ movie }) {
-  // double check the code after major reFactoring⬆️
   return (
     <li>
       <img src={movie.Poster} alt={`${movie.Title} poster`} />
