@@ -63,6 +63,7 @@ export default function App() {
   // const tempQuery = "interstellar";
 
   function handleSeletedMovie(id) {
+    // if You Select the Movie again then it will get closed  automatically
     setSelectedId((selectedId) => (id === selectedId ? null : id));
   }
 
