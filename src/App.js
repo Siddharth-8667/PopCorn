@@ -1,5 +1,5 @@
 import { useEffect, useState, useTransition } from "react";
-
+import StarRating from "./StarRating";
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -272,16 +272,21 @@ function MovieDetails({ selectedId, onCloseMovie }) {
     Genre: genre,
   } = movie;
 
-  useEffect(function () {
-    async function getMoviesDetails() {
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
-      );
-      const data = await res.json();
-      setMovie(data);
-    }
-    getMoviesDetails();
-  }, []);
+  useEffect(
+    function () {
+      async function getMoviesDetails() {
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
+        );
+        const data = await res.json();
+        setMovie(data);
+      }
+      getMoviesDetails();
+    },
+    [selectedId]
+  );
+  // The dependancy arrya is little bit like a EventListner, that is listening for one of the
+  // dependancy to change
 
   return (
     <div className="details">
@@ -303,7 +308,18 @@ function MovieDetails({ selectedId, onCloseMovie }) {
         </div>
       </header>
 
-      {selectedId}
+      <section>
+        <div className="rating">
+          <StarRating maxRating={10} size={24} />
+        </div>
+        <p>
+          <em>{plot}</em>
+        </p>
+        <p>Starring {actors}</p>
+        <p>Directed By {director}</p>
+      </section>
+
+      {/* {selectedId} */}
     </div>
   );
 }
