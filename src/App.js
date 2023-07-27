@@ -324,6 +324,14 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   // The dependancy arrya is little bit like a EventListner, that is listening for one of the
   // dependancy to change
 
+  useEffect(
+    function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+    },
+    [title]
+  );
+
   return (
     <div className="details">
       {isLoading ? (
